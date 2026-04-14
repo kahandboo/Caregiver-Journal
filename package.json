@@ -1,0 +1,29 @@
+{
+  "name": "caregiver-journal",
+  "version": "1.0.0",
+  "description": "반려동물 간병기록 웹 프로젝트",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kahandboo/Caregiver-Journal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kahandboo/Caregiver-Journal/issues"
+  },
+  "homepage": "https://github.com/kahandboo/Caregiver-Journal#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mysql2": "^3.22.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
