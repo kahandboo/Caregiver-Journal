@@ -10,4 +10,24 @@ async function createEvent(req, res) {
   }
 }
 
-module.exports = { createEvent };
+async function getEvents(req, res) {
+  try {
+    const {date} = req.query;
+    
+    if (!date) {
+      return res.status(400).json({message: 'date 필요'});
+    }
+
+    const events = await eventService.getEventsByDate(date);
+
+    res.json(events);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: '에러 발생' });
+  }
+}
+
+module.exports = { 
+  createEvent,
+  getEvents
+};

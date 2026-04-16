@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>고양이 간병기록</title>
+    </head>
+<body>
+
+<h1>기록하기</h1>
+
+<input type="date" id="date">
+<input type="time" id="time">
+
+<select id="type" onChange="handleTypeChange()">
+    <option value="food">사료</option>
+    <option value="poop">대변</option>
+    <option value="pee">소변</option>
+    <option value="medicine">약</option>
+    <option value="fluid">수액</option>
+</select>
+
+<input type="number" id="amount" placeholder="amount">
+
+<input type="text" id="sub_type" placeholder="약 이름/수액 이름">
+
+<input type="text" id="memo" placeholder="memo">
+
+<button onclick="addEvent()">추가</button>
+
+<h1>기록 조회</h1>
+<input type="date" id="searchDate">
+<button onclick="getEvents()">조회</button>
+
+<h2>요약</h2>
+<div id="summary"></div>
+
+<ul id="list"></ul>
+
+
+<script>    
+    window.onload = () => {
+        const today = new Date().toLocaleDateString('en-CA');
+        const now = new Date();
+
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = now.getMinutes() < 30 ? '00' : '30';
+
+        document.getElementById('date').value = today;
+        document.getElementById('searchDate').value = today;
+        document.getElementById('time').value = `${hours}:${minutes}`;
+
+        getEvents();
+    };
+
+    function handleTypeChange(){
+        const type = document.getElementById('type').value;
+        const sub_type = document.getElementById('sub_type');
+
+        if (type === 'medicine' || type === 'fluid') {
+            sub_type.disabled = false;
+        } else {
+            sub_type.disabled = true;
+        }
+    }
+
+    async function addEvent() {
+        const data = {
+            date: document.getElementById('date').value,
+            time: document.getElementById('time').value,
+            type: document.getElementById('type').value,
+            amount: document.getElementById('amount').value || null,
+            sub_type: document.getElementById('sub_type').value || null,
+            memo: document.getElementById('memo').value || null,
+        };
+
+        console.log(document.getElementById('sub_type').value);
+
+        await fetch('/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        alert('추가 완료');
+        resetForm();
+
+        getEvents();
+    }
+
+    async function getEvents() {
+        const date = document.getElementById('searchDate').value;
+
+        const res = await fetch(`/events?date=${date}`);
+        const data = await res.json();
+
+        const list = document.getElementById('list');
+        list.innerHTML = '';
+
+        let totalFood = 0;
+        let poopCount = 0;
+        let peeCount = 0;
+        let totalFluid = 0;
+
+        data.forEach(e => {
+            const parts = [
+                e.time,
+                e.type,
+                e.amount,
+                e.sub_type,
+                e.memo
+            ].filter(v => v);
+
+            const li = document.createElement('li');
+            li.innerText = parts.join(' - ');
+            list.appendChild(li);
+
+            if (e.type === 'food') {
+                totalFood += e.amount || 0;
+            }
+
+            if (e.type === 'poop') {
+                poopCount += e.amount || 0;
+            }
+
+            if (e.type === 'pee') {
+                peeCount += e.amount || 0;
+            }
+
+            if (e.type === 'fluid') {
+                totalFluid += e.amount || 0;
+            }
+        });
+
+        document.getElementById('summary').innerText = `
+            총 사료: ${totalFood}g
+            대변/소변: ${poopCount}개 / ${peeCount}개
+            총 수액: ${totalFluid}ml
+        `
+    }
+    
+    function resetForm() {
+        document.getElementById('type').value = 'food';
+        document.getElementById('amount').value = '';
+        document.getElementById('sub_type').value = '';
+        document.getElementById('memo').value = '';
+
+        const now = new Date();
+
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = now.getMinutes() < 30 ? '00' : '30';
+        document.getElementById('time').value = `${hours}:${minutes}`;
+
+
+        handleTypeChange();
+    }
+</script>
+</body>
+</html>
