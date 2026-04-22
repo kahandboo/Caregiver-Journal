@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>체중 관리</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="nav">
+            <button onclick="location.href='index.html'" class="nav-btn">기록 화면으로</button>
+        </div>
+
+        <h1>체중 추세</h1>
+        <div class="chart-container">
+            <canvas id="weightChart"></canvas>
+        </div>
+
+        <div class="weight-input-box">
+            <h3>체중 기록하기</h3>
+            <input type="date" id="weightDate">
+            <input type="number" step="0.01" id="weightValue" placeholder="체중 입력 (kg)">
+            <button onclick="addWeight()" class="primary-btn">기록</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = () => {
+            document.getElementById('weightDate').value = new Date().toLocaleDateString('en-CA');
+            drawChart();
+        };
+
+        async function addWeight() {
+            const date = document.getElementById('weightDate').value;
+            const weight = document.getElementById('weightValue').value;
+
+            if(!weight) return alert("체중을 입력해주세요");
+
+            await fetch('/events/weights', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ date, weight })
+            });
+
+            alert('기록 완료');
+            location.reload(); // 그래프 갱신을 위해 새로고침
+        }
+
+        async function drawChart() {
+            const res = await fetch('/events/weights');
+            const data = await res.json();
+
+            // 날짜 데이터를 YY-MM-DD 형식으로 변환
+            const labels = data.map(row => {
+                const d = new Date(row.date);
+                const year = String(d.getFullYear()).slice(-2); // 2026 -> 26
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            });
+            
+            const weights = data.map(row => row.weight);
+
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            
+            // 기존 차트가 있다면 파괴하고 새로 그려야 꼬이지 않습니다 (선택 사항)
+            if (window.myChart) {
+                window.myChart.destroy();
+            }
+
+            window.myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels, // 변환된 labels 사용
+                    datasets: [{
+                        label: '촉새 몸무게 (kg)',
+                        data: weights,
+                        borderColor: '#ff6384',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 5, // 점 크기 키우기
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            // 몸무게 변화를 더 잘 보기 위해 범위를 자동 조절
+                            suggestedMin: Math.min(...weights) - 0.5,
+                            suggestedMax: Math.max(...weights) + 0.5
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45, // 글자를 살짝 눕혀서 표시
+                                minRotation: 45,
+                                autoSkip: true,  // 데이터가 많으면 자동으로 건너뜀
+                                maxTicksLimit: 10 // 화면에 표시될 최대 라벨 개수 제한
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

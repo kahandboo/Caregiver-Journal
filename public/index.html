@@ -4,10 +4,15 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>고양이 간병기록</title>
+        <link rel="stylesheet" href="style.css">
     </head>
 <body>
 
 <div class="container">
+    <div class="nav">
+        <button onclick="location.href='weight.html'" class="nav-btn">체중 관리</button>
+    </div>
+
     <h1>기록하기</h1>
 
     <input type="date" id="date">
@@ -157,25 +162,5 @@
         handleTypeChange();
     }
 </script>
-<style>
-    body {
-        margin: 0;
-        font-family: sans-serif;
-    }
-
-    .container {
-        max-width: 500px;
-        margin: 0 auto;
-        padding: 16px;
-    }
-
-    input, select, button {
-        width: 100%;
-        margin-bottom: 10px;
-        padding: 10px;
-        font-size: 16px;
-        box-sizing: border-box;
-    }
-</style>
 </body>
 </html>

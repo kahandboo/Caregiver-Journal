@@ -17,8 +17,6 @@ async function createEvent(data) {
     sub_type
   ]);
 
-  console.log(req.body);
-
   return result.insertId;
 }
 
@@ -34,7 +32,22 @@ async function getEventsByDate(date) {
   return rows;
 }
 
+async function addWeight(date, weight) {
+  const query = `INSERT INTO weights (date, weight) VALUES (?, ?) `;
+
+  await pool.execute(query, [date, weight]);
+}
+
+async function getWeightsAll() {
+  const query = `SELECT date, weight FROM weights ORDER BY date ASC`;
+
+  const [rows] = await pool.execute(query);
+  return rows;
+}
+
 module.exports = { 
   createEvent,
-  getEventsByDate
+  getEventsByDate,
+  addWeight,
+  getWeightsAll
 };
